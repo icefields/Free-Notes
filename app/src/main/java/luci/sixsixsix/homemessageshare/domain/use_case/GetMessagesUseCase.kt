@@ -1,7 +1,5 @@
 package luci.sixsixsix.homemessageshare.domain.use_case
 
-import kotlinx.coroutines.flow.flow
-import luci.sixsixsix.homemessageshare.data.remote.dto.toMessage
 import luci.sixsixsix.homemessageshare.domain.MessagesRepository
 import javax.inject.Inject
 
@@ -18,7 +16,6 @@ class GetMessagesUseCase @Inject constructor(
      * We return a flow because we want to emit multiple values over a period of time, we want to
      * emit Loading, Successful with data or Error.
      */
-    operator fun invoke() = flow {
-        emit(messagesRepository.getMessages())
-    }
+    suspend operator fun invoke() =
+        messagesRepository.getMessages()
 }

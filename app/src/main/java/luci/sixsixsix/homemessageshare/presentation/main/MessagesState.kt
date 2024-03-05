@@ -7,5 +7,5 @@ import luci.sixsixsix.homemessageshare.domain.models.Message
 @Parcelize
 data class MessagesState(
     val messages: List<Message> = listOf(),
-    val serverAddress: String = ""
+    val loading: Boolean = false
 ): Parcelable

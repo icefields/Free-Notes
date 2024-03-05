@@ -1,8 +1,8 @@
 package luci.sixsixsix.homemessageshare.presentation.main
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,12 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -30,13 +30,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,19 +44,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import luci.sixsixsix.homemessageshare.domain.models.Message
+import luci.sixsixsix.homemessageshare.presentation.SettingsViewModel
 import luci.sixsixsix.homemessageshare.presentation.common.NewServerDialog
 import luci.sixsixsix.homemessageshare.presentation.main.components.MessageItem
 
 @Composable
 fun MainScreen(
+    settingsViewModel: SettingsViewModel,
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
+    val state = settingsViewModel.state
     MainScreenContent(
         messages = mainViewModel.state.messages,
-        currentServer = mainViewModel.state.serverAddress,
-        onSubmitMessage = mainViewModel::submitMessages,
-        onRemoveMessage = mainViewModel::removeMessages,
-        onNewServer = mainViewModel::setServer
+        currentServer = state.serverAddress,
+        currentUsername = state.username,
+        isMaterialYouOn = state.isMaterialYouEnabled,
+        onSubmitMessage = mainViewModel::submitMessage,
+        onRemoveMessage = mainViewModel::removeMessage,
+        onEditMessage = mainViewModel::editMessage,
+        onNewServer = settingsViewModel::setServer,
+        onNewUsername = settingsViewModel::setUsername,
+        onToggleMaterialYou = settingsViewModel::toggleMaterialYou
     )
 }
 
@@ -65,26 +73,48 @@ fun MainScreen(
 fun MainScreenContent(
     messages: List<Message>,
     currentServer: String,
-    onSubmitMessage: (title: String, message: String) -> Unit,
+    currentUsername: String,
+    isMaterialYouOn: Boolean,
+    onSubmitMessage: (message: String, title: String, tags: List<String>) -> Unit,
     onRemoveMessage: (message: Message) -> Unit,
-    onNewServer: (server: String) -> Unit
+    onEditMessage: (message: Message) -> Unit,
+    onNewServer: (server: String) -> Unit,
+    onToggleMaterialYou: (enable: Boolean) -> Unit,
+    onNewUsername: (username: String) -> Unit
 ) {
-    var title by remember {
+    var title by rememberSaveable {
         mutableStateOf("")
     }
-    var message by remember {
+    var message by rememberSaveable {
         mutableStateOf("")
     }
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
 
     var createPlaylistDialogOpen by remember { mutableStateOf(false) }
+    var editUsernameOpen by remember { mutableStateOf(false) }
 
     if (createPlaylistDialogOpen) {
         NewServerDialog(
             currentServer = currentServer,
-            onConfirm = onNewServer,
+            onConfirm = {
+                onNewServer(it)
+                createPlaylistDialogOpen = false
+            },
             onCancel = {
                 createPlaylistDialogOpen = false
+            }
+        )
+    }
+
+    if (editUsernameOpen) {
+        NewServerDialog(
+            currentServer = currentUsername,
+            onConfirm = {
+                onNewUsername(it)
+                editUsernameOpen = false
+            },
+            onCancel = {
+                editUsernameOpen = false
             }
         )
     }
@@ -103,7 +133,9 @@ fun MainScreenContent(
                     Text(
                         modifier = Modifier
                             .basicMarquee()
-                            .padding(15.dp),
+                            .padding(15.dp).clickable {
+                                onToggleMaterialYou(!isMaterialYouOn)
+                            },
                         text = "NOTES",
                         maxLines = 1,
                         fontWeight = FontWeight.Normal,
@@ -121,10 +153,18 @@ fun MainScreenContent(
                 scrollBehavior = scrollBehavior,
                 actions = {
                     IconButton(onClick = {
+                        editUsernameOpen = true
+                    }) {
+                        Icon(
+                            imageVector = Icons.Outlined.AccountCircle,
+                            contentDescription = "show hide album info"
+                        )
+                    }
+                    IconButton(onClick = {
                         createPlaylistDialogOpen = true
                     }) {
                         Icon(
-                            imageVector = Icons.Outlined.Info,
+                            imageVector = Icons.Outlined.Settings,
                             contentDescription = "show hide album info"
                         )
                     }
@@ -138,8 +178,6 @@ fun MainScreenContent(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             color = Color.Transparent
         ) {
-
-
             Column(modifier = Modifier.fillMaxSize()) {
                 OutlinedTextField(
                     modifier = Modifier.fillMaxWidth(),
@@ -165,7 +203,7 @@ fun MainScreenContent(
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
-                        onSubmitMessage(title, message)
+                        onSubmitMessage(message, title,  listOf())
                         title = ""
                         message = ""
                     }
@@ -178,7 +216,10 @@ fun MainScreenContent(
                         MessageItem(
                             message = mess,
                             enableSwipeToRemove = true,
-                            onRemove = onRemoveMessage
+                            onRemove = onRemoveMessage,
+                            onEdit = { mess ->
+                                onEditMessage(mess.copy(message = message, title = title))
+                            }
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                     }

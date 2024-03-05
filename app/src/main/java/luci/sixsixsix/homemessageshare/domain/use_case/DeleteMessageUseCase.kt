@@ -7,7 +7,6 @@ import javax.inject.Inject
 class DeleteMessageUseCase @Inject constructor(
     private val messagesRepository: MessagesRepository
 ) {
-    operator fun invoke(id: String) = flow {
-        emit(messagesRepository.deleteMessage(id))
-    }
+    suspend operator fun invoke(id: String) =
+        messagesRepository.deleteMessage(id)
 }

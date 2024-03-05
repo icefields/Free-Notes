@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.DismissDirection
 import androidx.compose.material3.DismissState
@@ -58,7 +59,7 @@ fun <T> SwipeToDismissItem(
     foregroundView: @Composable () -> Unit,
     enableSwipeToRemove: Boolean = false,
     iconLeft: ImageVector = Icons.Default.Delete,
-    iconRight: ImageVector = Icons.Default.Star,
+    iconRight: ImageVector = Icons.Default.Edit,
     onRemove: (T) -> Unit = { },
     onRightToLeftSwipe: (T) -> Unit = { }
 ) {

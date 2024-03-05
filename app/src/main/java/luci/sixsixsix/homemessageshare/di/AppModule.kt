@@ -7,6 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import luci.sixsixsix.homemessageshare.data.remote.MainNetwork
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -21,17 +22,17 @@ typealias WeakContext = WeakReference<Context>
 object AppModule {
     @Provides
     @Singleton
-    fun provideRetrofit(): Retrofit {
+    fun provideRetrofit(interceptor: Interceptor): Retrofit {
         val okHttpClient = OkHttpClient.Builder()
             .retryOnConnectionFailure(true)
             .connectTimeout(4000, TimeUnit.SECONDS)
             .readTimeout(4000, TimeUnit.SECONDS)
             .writeTimeout(8000, TimeUnit.SECONDS)
-            //.addInterceptor(interceptor)
+            .addInterceptor(interceptor)
             .build()
 
         return Retrofit.Builder()
-            .baseUrl("http://192.168.1.100/")
+            .baseUrl("http://localhost")
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

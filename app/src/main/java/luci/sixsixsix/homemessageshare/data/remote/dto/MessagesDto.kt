@@ -6,13 +6,15 @@ import luci.sixsixsix.homemessageshare.domain.models.Message
 data class MessageDto(
     @SerializedName("id")
     val id: String?,
-    @SerializedName("date")
-    val date: String,
+    @SerializedName("date_created")
+    val dateCreated: String,
+    @SerializedName("date_modified")
+    val dateModified: String,
     @SerializedName("message")
     val message: String?,
     @SerializedName("title")
     val title: String?,
-    @SerializedName("tag")
+    @SerializedName("tags")
     val tags: List<String>?
 )
 
@@ -26,5 +28,6 @@ fun MessageDto.toMessage() = Message(
     title = title ?: "",
     message = message ?: "",
     tags = tags ?: listOf(),
-    date = date
+    dateCreated = dateCreated,
+    dateModified = dateModified
 )

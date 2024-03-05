@@ -1,13 +1,12 @@
 package luci.sixsixsix.homemessageshare.domain.use_case
 
-import kotlinx.coroutines.flow.flow
 import luci.sixsixsix.homemessageshare.domain.MessagesRepository
+import luci.sixsixsix.homemessageshare.domain.models.Message
 import javax.inject.Inject
 
 class WriteNewMessageUseCase @Inject constructor(
     private val messagesRepository: MessagesRepository
 ) {
-    operator fun invoke(title: String, message: String) = flow {
-        emit(messagesRepository.submitMessage(title, message))
-    }
+    suspend operator fun invoke(message: String, title: String, tags: List<String>) =
+        messagesRepository.submitMessage(message = message, title = title, tags = tags)
 }
