@@ -4,19 +4,25 @@
             "id": "65e5330d8b6a2",
             "title": "first",
             "message": "first real note",
-            "date": "2024-03-04  02:33:49"
+            "date_created": "2024-03-04  02:33:49",
+            "date_modified": "2024-03-04  02:33:49",
+            "tags": ["freenote", "note"]
         },
         {
             "id": "65e6b108a7ddd",
             "title": "How to Remove Notes",
             "message": "remove notes by swiping left to right",
-            "date": "2024-03-05  05:43:36"
+            "date_created": "2024-03-04  02:33:49",
+            "date_modified": "2024-03-04  02:33:49",
+            "tags": ["freenote", "note"]
         },
         {
             "id": "65e6b2797132e",
             "title": "How to Edit Notes",
             "message": "edit notes by swiping right to left",
-            "date": "2024-03-05  05:49:45"
+            "date_created": "2024-03-04  02:33:49",
+            "date_modified": "2024-03-04  02:33:49",
+            "tags": ["freenote", "note"]
         }
     ]
 }
