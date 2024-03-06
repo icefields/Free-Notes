@@ -132,10 +132,10 @@ fun MainScreenContent(
         containerColor = Color.Transparent,
         floatingActionButton = {
             IconButton(
-                modifier = Modifier.size(166.dp),
+                modifier = Modifier.size(96.dp),
                 onClick = { editModeEnabled = !editModeEnabled }) {
                 Icon(
-                    modifier = Modifier.size(166.dp),
+                    modifier = Modifier.size(96.dp),
                     imageVector = Icons.Outlined.AddCircle,
                     contentDescription = "add new note"
                 )

@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import luci.sixsixsix.homemessageshare.domain.models.Message
 import luci.sixsixsix.homemessageshare.presentation.common.SwipeToDismissItem
 
@@ -65,9 +66,18 @@ fun MessageItem(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp),
-                        text = message.title ?: "",
+                        text = message.title,
                         maxLines = 3,
                         fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp),
+                        text = message.id,
+                        maxLines = 1,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Thin
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     TextField(

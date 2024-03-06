@@ -6,7 +6,13 @@ $ACTION_EDIT = 'edit';
 $ACTION_NEW = 'new';
 $ACTION_VIEW = 'view';
 
+$action = $_GET['action'];
+
 $username = $_GET['username'];
+if ($username == "freenotes-debug-user.random*maybe.unique.id.to.fetch-default-notes") {
+	# readonly account
+	#$action = $ACTION_VIEW;	
+}
 $FILENAME = $username.'.json';
 if ($FILENAME == $START_LOG) {
 	throw new Exception('Invalid username', 100);
@@ -22,7 +28,6 @@ if(!is_file($FILENAME)) {
 $message = $_GET['message'];
 $dateStr = date("Y-m-d")."  ".date("H:i:s");
 $title = $_GET['title'];
-$action = $_GET['action'];
 $tags = $_GET['tags'];
 $id = $_GET[$KEY_ID];
 
@@ -51,7 +56,8 @@ case $ACTION_EDIT:
 	break;
 case $ACTION_NEW:
 default:
-	$newNote = createNewNote(uniqid(), $title, $message, $dateStr, $dateStr, $tags, $array);
+	if ($id == null) $id = uniqid();
+	$newNote = createNewNote($id, $title, $message, $dateStr, $dateStr, $tags, $array);
 	array_push($array, $newNote);
 }
 

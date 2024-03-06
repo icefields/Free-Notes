@@ -119,11 +119,11 @@ class MessagesRepositoryImpl @Inject constructor(
         emit(Resource.Loading(true))
         val notesDb = dao.getNotes(username).map { it.toNote() }
         // get messages from server
-        val notesNetwork = api.getMessages(username).data.map { it.toMessage() }
+        var notesDtoNetwork = api.getMessages(username)//.data.map { it.toMessage() }
         notesDb.forEach { dbNote ->
             // if db note is not present on server, send it
-            if (!notesNetwork.contains(dbNote)) {
-                api.writeMessage(
+            if ( !(notesDtoNetwork.data.map { it.id }.contains(dbNote.id)) ) {
+                notesDtoNetwork = api.writeMessage(
                     id = dbNote.id,
                     username = username,
                     title = dbNote.title,
@@ -133,7 +133,7 @@ class MessagesRepositoryImpl @Inject constructor(
             }
         }
         // save the new network notes
-        dao.insertNotes(notesNetwork.map { it.toNoteEntity(username) })
+        dao.insertNotes(notesDtoNetwork.data.map { it.toMessage() }.map { it.toNoteEntity(username) })
         emit(Resource.Success(dao.getNotes(username).map { it.toNote() }))
         emit(Resource.Loading(false))
     }.catch { e -> emit(Resource.Error(exception = e)) }
