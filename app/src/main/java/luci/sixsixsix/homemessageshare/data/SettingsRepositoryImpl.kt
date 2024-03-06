@@ -6,9 +6,14 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.distinctUntilChanged
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import luci.sixsixsix.homemessageshare.common.Constants.DEBUG_SERVER
+import luci.sixsixsix.homemessageshare.common.Constants.OFFLINE_USERNAME
 import luci.sixsixsix.homemessageshare.di.WeakContext
 import luci.sixsixsix.homemessageshare.domain.SettingsRepository
 import luci.sixsixsix.homemessageshare.domain.Success
@@ -21,16 +26,36 @@ private const val KEY_WORKER_PREFERENCE_ID = "{prefix}downloadWorkerId"
 private const val KEY_USERNAME_PREFERENCE_ID = "{prefix}username.id.storage"
 private const val KEY_MATERIAL_YOU_PREFERENCE_ID = "{prefix}materiayouonoff.id.storage"
 
+@OptIn(DelicateCoroutinesApi::class)
 @Singleton
 class SettingsRepositoryImpl @Inject constructor(
     private val weakContext: WeakContext
 ): SettingsRepository {
-    private val _settingsLiveData = MutableLiveData(Settings())
-    val settingsLiveData: LiveData<Settings> = _settingsLiveData
-    override val settingsFlow = settingsLiveData.distinctUntilChanged().asFlow()
+    private val _settingsLiveData: MutableLiveData<Settings?> = MutableLiveData(null)
+    override val settingsLiveData: LiveData<Settings?> = _settingsLiveData
+    override val settingsFlow = settingsLiveData.distinctUntilChanged().asFlow().filterNotNull()
 
     private fun getSharedPreferences() =
         weakContext.get()?.getSharedPreferences(KEY_STORAGE, Context.MODE_PRIVATE)
+
+    init {
+        initialize {
+            println("SettingsRepositoryImpl - initialize callback aaaa ${it.username}")
+            _settingsLiveData.value = it
+        }
+    }
+
+    private fun initialize(callback: (Settings) -> Unit) {
+        GlobalScope.launch {
+            withContext(Dispatchers.Main) {
+                callback( Settings(
+                    isMaterialYouEnabled = isMaterialYouEnabled(),
+                    username = getUsername() ?: OFFLINE_USERNAME,
+                    serverAddress = getServerAddress(true)
+                ))
+            }
+        }
+    }
 
     @SuppressLint("ApplySharedPref")
     private suspend fun writeString(

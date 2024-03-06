@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AddCircle
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -64,6 +65,7 @@ fun MainScreen(
         currentUsername = state.username,
         isMaterialYouOn = state.isMaterialYouEnabled,
         onSubmitMessage = mainViewModel::submitMessage,
+        onSyncNotes = mainViewModel::syncNotes,
         onRemoveMessage = mainViewModel::removeMessage,
         onEditMessage = mainViewModel::editMessage,
         onNewServer = settingsViewModel::setServer,
@@ -80,6 +82,7 @@ fun MainScreenContent(
     currentUsername: String,
     isMaterialYouOn: Boolean,
     onSubmitMessage: (message: String, title: String, tags: List<String>) -> Unit,
+    onSyncNotes: () -> Unit,
     onRemoveMessage: (message: Message) -> Unit,
     onEditMessage: (message: Message) -> Unit,
     onNewServer: (server: String) -> Unit,
@@ -169,6 +172,12 @@ fun MainScreenContent(
                 },
                 scrollBehavior = scrollBehavior,
                 actions = {
+                    IconButton(onClick = onSyncNotes) {
+                        Icon(
+                            imageVector = Icons.Outlined.Refresh,
+                            contentDescription = "sync all the offline notes"
+                        )
+                    }
                     IconButton(onClick = {
                         editUsernameOpen = true
                     }) {

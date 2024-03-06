@@ -16,6 +16,6 @@ class GetMessagesUseCase @Inject constructor(
      * We return a flow because we want to emit multiple values over a period of time, we want to
      * emit Loading, Successful with data or Error.
      */
-    suspend operator fun invoke() =
-        messagesRepository.getMessages()
+    suspend operator fun invoke(username: String, ) =
+        messagesRepository.getMessages(username)
 }

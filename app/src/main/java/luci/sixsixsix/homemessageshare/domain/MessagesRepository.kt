@@ -5,8 +5,10 @@ import luci.sixsixsix.homemessageshare.common.Resource
 import luci.sixsixsix.homemessageshare.domain.models.Message
 
 interface MessagesRepository {
-    suspend fun getMessages(): Flow<Resource<List<Message>>>
-    suspend fun submitMessage(message: String, title: String, tags: List<String>): Flow<Resource<List<Message>>>
-    suspend fun editMessage(message: Message): Flow<Resource<List<Message>>>
-    suspend fun deleteMessage(id: String): Flow<Resource<List<Message>>>
+    suspend fun getMessages(username: String): Flow<Resource<List<Message>>>
+    suspend fun submitMessage(username: String, noteStr: String, title: String, tags: List<String>): Flow<Resource<List<Message>>>
+    suspend fun editMessage(username: String, noteStr: Message): Flow<Resource<List<Message>>>
+    suspend fun deleteMessage(username: String, id: String): Flow<Resource<List<Message>>>
+    suspend fun syncNotes(username: String): Flow<Resource<List<Message>>>
+
 }

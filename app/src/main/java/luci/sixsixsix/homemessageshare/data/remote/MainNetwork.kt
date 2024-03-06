@@ -10,6 +10,7 @@ import retrofit2.http.Query
 interface MainNetwork {
     @GET("api.php?action=new")
     suspend fun writeMessage(
+        @Query("id") id: String? = null,
         @Query("username") username: String,
         @Query("title") title: String,
         @Query("message") message: String,

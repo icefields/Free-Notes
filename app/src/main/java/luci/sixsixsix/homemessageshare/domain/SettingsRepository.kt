@@ -1,5 +1,6 @@
 package luci.sixsixsix.homemessageshare.domain
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.asFlow
 import kotlinx.coroutines.flow.Flow
 import luci.sixsixsix.homemessageshare.domain.models.Settings
@@ -8,6 +9,7 @@ typealias Success = Boolean
 
 interface SettingsRepository {
     val settingsFlow: Flow<Settings>
+    val settingsLiveData: LiveData<Settings?>
     suspend fun getServerAddress(returnDefaultIfNull: Boolean = true): String
     suspend fun writeServerAddress(serverAddress: String): Success
     suspend fun getUsername(): String?

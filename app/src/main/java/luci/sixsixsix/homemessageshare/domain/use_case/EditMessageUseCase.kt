@@ -7,6 +7,6 @@ import javax.inject.Inject
 class EditMessageUseCase @Inject constructor(
     private val messagesRepository: MessagesRepository
 ) {
-    suspend operator fun invoke(editedMessage: Message) =
-        messagesRepository.editMessage(editedMessage)
+    suspend operator fun invoke(username: String, editedMessage: Message) =
+        messagesRepository.editMessage(username, editedMessage)
 }
