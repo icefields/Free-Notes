@@ -1,5 +1,6 @@
 package luci.sixsixsix.homemessageshare.presentation.main
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -9,10 +10,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -92,6 +96,7 @@ fun MainScreenContent(
 
     var createPlaylistDialogOpen by remember { mutableStateOf(false) }
     var editUsernameOpen by remember { mutableStateOf(false) }
+    var editModeEnabled by remember { mutableStateOf(false) }
 
     if (createPlaylistDialogOpen) {
         NewServerDialog(
@@ -122,6 +127,17 @@ fun MainScreenContent(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = Color.Transparent,
+        floatingActionButton = {
+            IconButton(
+                modifier = Modifier.size(166.dp),
+                onClick = { editModeEnabled = !editModeEnabled }) {
+                Icon(
+                    modifier = Modifier.size(166.dp),
+                    imageVector = Icons.Outlined.AddCircle,
+                    contentDescription = "add new note"
+                )
+            }
+        },
         topBar = {
             TopAppBar(
                 /*modifier = Modifier.background(Color.Transparent),
@@ -133,7 +149,8 @@ fun MainScreenContent(
                     Text(
                         modifier = Modifier
                             .basicMarquee()
-                            .padding(15.dp).clickable {
+                            .padding(15.dp)
+                            .clickable {
                                 onToggleMaterialYou(!isMaterialYouOn)
                             },
                         text = "NOTES",
@@ -179,38 +196,45 @@ fun MainScreenContent(
             color = Color.Transparent
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                OutlinedTextField(
-                    modifier = Modifier.fillMaxWidth(),
-                    value = title,
-                    onValueChange = {
-                        title = it
-                    },
-                    label = {
-                        Text(text = "Title")
+                AnimatedVisibility(visible = editModeEnabled) {
+                    Column() {
+                        OutlinedTextField(
+                            modifier = Modifier.fillMaxWidth(),
+                            value = title,
+                            onValueChange = { newValue ->
+                                title = newValue
+                            },
+                            label = {
+                                Text(text = "Title")
+                            }
+                        )
+                        OutlinedTextField(
+                            modifier = Modifier.fillMaxWidth(),
+                            value = message,
+                            onValueChange = {
+                                message = it
+                            },
+                            label = {
+                                Text(text = "Note")
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = {
+                                onSubmitMessage(message, title, listOf())
+                                title = ""
+                                message = ""
+                            }
+                        ) {
+                            Text(text = "SUBMIT")
+                        }
                     }
-                )
-                OutlinedTextField(
-                    modifier = Modifier.fillMaxWidth(),
-                    value = message,
-                    onValueChange = {
-                        message = it
-                    },
-                    label = {
-                        Text(text = "Note")
-                    }
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        onSubmitMessage(message, title,  listOf())
-                        title = ""
-                        message = ""
-                    }
-                ) {
-                    Text(text = "SUBMIT")
+                    Spacer(modifier = Modifier.height(8.dp))
+
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(messages) { mess ->
                         MessageItem(

@@ -10,7 +10,7 @@ interface SettingsRepository {
     val settingsFlow: Flow<Settings>
     suspend fun getServerAddress(returnDefaultIfNull: Boolean = true): String
     suspend fun writeServerAddress(serverAddress: String): Success
-    suspend fun getUsername(returnDefaultIfNull: Boolean = true): String
+    suspend fun getUsername(): String?
     suspend fun writeUsername(username: String): Success
     suspend fun isMaterialYouEnabled(): Boolean
     suspend fun toggleMaterialYou(enable: Boolean): Boolean

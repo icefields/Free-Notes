@@ -2,10 +2,13 @@ package luci.sixsixsix.homemessageshare.di
 
 import android.app.Application
 import android.content.Context
+import androidx.room.Room
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import luci.sixsixsix.homemessageshare.common.Constants.DB_LOCAL_NAME
+import luci.sixsixsix.homemessageshare.data.local.NotesDatabase
 import luci.sixsixsix.homemessageshare.data.remote.MainNetwork
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -37,6 +40,17 @@ object AppModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
+
+    @Provides
+    @Singleton
+    fun provideNotesDatabase(application: Application): NotesDatabase =
+        Room.databaseBuilder(
+            application,
+            NotesDatabase::class.java,
+            DB_LOCAL_NAME
+        ).fallbackToDestructiveMigration()
+            //.addMigrations(MIGRATION_73_74())
+            .build()
 
     @Provides
     @Singleton

@@ -2,8 +2,6 @@ package luci.sixsixsix.homemessageshare.data
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.SharedPreferences
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asFlow
@@ -11,7 +9,6 @@ import androidx.lifecycle.distinctUntilChanged
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import luci.sixsixsix.homemessageshare.common.Constants.DEBUG_SERVER
-import luci.sixsixsix.homemessageshare.common.Constants.DEBUG_USERNAME
 import luci.sixsixsix.homemessageshare.di.WeakContext
 import luci.sixsixsix.homemessageshare.domain.SettingsRepository
 import luci.sixsixsix.homemessageshare.domain.Success
@@ -65,12 +62,8 @@ class SettingsRepositoryImpl @Inject constructor(
         _settingsLiveData.value = settingsLiveData.value?.copy(serverAddress = serverAddress)
     }
 
-    override suspend fun getUsername(returnDefaultIfNull: Boolean) =
-        getSharedPreferences()?.getString(KEY_USERNAME_PREFERENCE_ID, null) ?: run {
-            if (returnDefaultIfNull) {
-                DEBUG_USERNAME
-            } else ""
-        }
+    override suspend fun getUsername() =
+        getSharedPreferences()?.getString(KEY_USERNAME_PREFERENCE_ID, null)
 
     override suspend fun writeUsername(username: String): Success =
         writeString(KEY_USERNAME_PREFERENCE_ID, username).also {

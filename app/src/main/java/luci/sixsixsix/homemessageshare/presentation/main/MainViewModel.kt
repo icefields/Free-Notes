@@ -43,11 +43,13 @@ class MainViewModel @Inject constructor(
         getMessages()
         viewModelScope.launch {
             settingsRepository.settingsFlow.map { it.serverAddress }.collectLatest {
+                println("new server aaaa")
                 getMessages()
             }
         }
         viewModelScope.launch {
             settingsRepository.settingsFlow.map { it.username }.collectLatest {
+                println("new username aaaa")
                 getMessages()
             }
         }

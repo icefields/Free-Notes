@@ -45,7 +45,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.8"
     }
     packaging {
         resources {
@@ -98,8 +98,13 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:$hiltVersion")
     implementation("androidx.hilt:hilt-common:$hiltVersion")
     implementation("androidx.hilt:hilt-work:$hiltVersion")
-
     //implementation("androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03")
+
+    // --- Room --- //
+    implementation("androidx.room:room-runtime:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
+    // Kotlin Extensions and Coroutines support for Room
+    implementation("androidx.room:room-ktx:2.6.1")
 
     // --- Retrofit --- //
     implementation("com.squareup.retrofit2:retrofit:$retrofit2Version")

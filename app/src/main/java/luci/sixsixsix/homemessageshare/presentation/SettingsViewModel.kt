@@ -41,9 +41,6 @@ class SettingsViewModel @Inject constructor(
         runBlocking {
             state = state.copy(isMaterialYouEnabled = settingsRepository.isMaterialYouEnabled())
         }
-        // replace with livedata or flow that listens to changes to settings
-        getServer()
-        getUsername()
 
         viewModelScope.launch {
             settingsRepository.settingsFlow.collectLatest {
@@ -72,14 +69,6 @@ class SettingsViewModel @Inject constructor(
 //            //  otherwise app will always crash on invalid username (ie username==log)
 //            state = state.copy(username = username)
 //        }
-    }
-
-    private fun getServer() = viewModelScope.launch {
-        state = state.copy(serverAddress = settingsRepository.getServerAddress(false))
-    }
-
-    private fun getUsername() = viewModelScope.launch {
-        state = state.copy(username = settingsRepository.getUsername(false))
     }
 }
 
