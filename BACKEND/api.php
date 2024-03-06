@@ -5,7 +5,7 @@ $ACTION_DELETE = 'delete';
 $ACTION_EDIT = 'edit';
 $ACTION_NEW = 'new';
 $ACTION_VIEW = 'view';
-
+$FILE_PREFIX = "notes-";
 $action = $_GET['action'];
 
 $username = $_GET['username'];
@@ -13,7 +13,7 @@ if ($username == "freenotes-debug-user.random*maybe.unique.id.to.fetch-default-n
 	# readonly account
 	#$action = $ACTION_VIEW;	
 }
-$FILENAME = $username.'.json';
+$FILENAME = $FILE_PREFIX.$username.'.json';
 if ($FILENAME == $START_LOG) {
 	throw new Exception('Invalid username', 100);
 }
