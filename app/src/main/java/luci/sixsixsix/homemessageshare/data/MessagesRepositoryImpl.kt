@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import luci.sixsixsix.homemessageshare.common.Resource
+import luci.sixsixsix.homemessageshare.common.getDateString
 import luci.sixsixsix.homemessageshare.data.local.NotesDatabase
 import luci.sixsixsix.homemessageshare.data.local.entities.NoteEntity
 import luci.sixsixsix.homemessageshare.data.local.entities.toNote
@@ -41,6 +42,7 @@ class MessagesRepositoryImpl @Inject constructor(
             emit(Resource.Loading(false))
         }.catch { e -> emit(Resource.Error(exception = e)) }
 
+
     override suspend fun submitMessage(
         username: String,
         note: String,
@@ -49,13 +51,14 @@ class MessagesRepositoryImpl @Inject constructor(
     )  = flow {
         emit(Resource.Loading(true))
         val tempId = UUID.randomUUID().toString()
+        val dateNow = getDateString()
         dao.insertNote(NoteEntity(
                 id = tempId,
                 note = note,
                 title = title,
                 username = username,
-                dateModified = LocalDateTime.now().toString(),
-                dateCreated = LocalDateTime.now().toString()
+                dateModified = dateNow,
+                dateCreated = dateNow
         ))
         emit(Resource.Success(dao.getNotes(username).map { it.toNote() }))
 
@@ -65,6 +68,7 @@ class MessagesRepositoryImpl @Inject constructor(
                 username = username,
                 title = title,
                 message = note,
+                dateCreated = dateNow,
                 tags = tags
             ).data.map { it.toMessage() }
             dao.insertNotes(notesNetwork.map { it.toNoteEntity(username) })
@@ -128,6 +132,7 @@ class MessagesRepositoryImpl @Inject constructor(
                     username = username,
                     title = dbNote.title,
                     message = dbNote.message,
+                    dateCreated = getDateString(),
                     tags = dbNote.tags
                 )
             }

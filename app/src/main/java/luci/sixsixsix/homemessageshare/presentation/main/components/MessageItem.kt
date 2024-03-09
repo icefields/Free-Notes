@@ -1,16 +1,21 @@
 package luci.sixsixsix.homemessageshare.presentation.main.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -51,51 +56,82 @@ fun MessageItem(
                 },
                 shape = RoundedCornerShape(8.dp),
             ) {
-                Column {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp),
-                        text = message.dateModified,
-                        maxLines = 1,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontWeight = FontWeight.Light
-                    )
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp),
-                        text = message.title,
-                        maxLines = 3,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp),
-                        text = message.id,
-                        maxLines = 1,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Thin
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    TextField(
-                        modifier = Modifier
-                                .heightIn(max = 150.dp)
+                SelectionContainer{
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        if (!message.title.isNullOrBlank()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight()
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                            ) {
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 8.dp)
+                                        .padding(top = 10.dp, bottom = 8.dp),
+                                    text = message.title,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    maxLines = 3,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                        if (!message.message.isNullOrBlank()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight()
+                                    .background(MaterialTheme.colorScheme.primaryContainer)
+                            ) {
+                                Text(
+                                    modifier = Modifier
+                                        .padding(horizontal = 8.dp, vertical = 10.dp)
+                                        .heightIn(max = 150.dp)
+                                        .fillMaxWidth()
+                                        .background(MaterialTheme.colorScheme.primaryContainer)
+                                        .verticalScroll(rememberScrollState()),
+                                    text = message.message,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        // footer DATE row
+                        Row(
+                            modifier = Modifier
                                 .fillMaxWidth()
-                                .verticalScroll(rememberScrollState()),
-                        value = message.message ?: "",
-                        onValueChange = {},
-                        readOnly = true,
-                        colors = TextFieldDefaults.colors(
-                            unfocusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            focusedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            cursorColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
+                                .padding(horizontal = 8.dp)
+                        ) {
+                            Text(
+                                text = message.dateCreated,
+                                maxLines = 1,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = FontWeight.Light
+                            )
+                            Text(
+                                modifier = Modifier
+                                    .padding(start = 8.dp),
+                                text = message.dateModified,
+                                maxLines = 1,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontWeight = FontWeight.Light
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            modifier = Modifier
+                                .padding(start = 8.dp),
+                            text = message.id,
+                            maxLines = 1,
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.secondary,
+                            fontWeight = FontWeight.Thin
                         )
-                    )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
                 }
             }
         },

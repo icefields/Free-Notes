@@ -13,6 +13,7 @@ interface MainNetwork {
         @Query("id") id: String? = null,
         @Query("username") username: String,
         @Query("title") title: String,
+        @Query("date_created") dateCreated: String,
         @Query("message") message: String,
         @Query("tags") tags: List<String> = listOf()
     ): MessagesDto

@@ -1,20 +1,25 @@
 <?php
 $START_LOG = 'log.json'; 
 $KEY_ID = 'id';
+$KEY_CREATED = "date_created";
 $ACTION_DELETE = 'delete';
 $ACTION_EDIT = 'edit';
 $ACTION_NEW = 'new';
 $ACTION_VIEW = 'view';
 $FILE_PREFIX = "notes-";
 $action = $_GET['action'];
-
 $username = $_GET['username'];
-if ($username == "freenotes-debug-user.random*maybe.unique.id.to.fetch-default-notes") {
-	# readonly account
-	#$action = $ACTION_VIEW;	
-}
 $FILENAME = $FILE_PREFIX.$username.'.json';
-if ($FILENAME == $START_LOG) {
+$READONLY_USERNAME = "freenotes-debug-user.random*maybe.unique.id.to.fetch-default-notes";
+	
+# handle read-only account
+if ($username == $READONLY_USERNAME || $action == null) {
+	# readonly account
+	$action = $ACTION_VIEW;	
+}
+
+# handle invalid account names
+if ($username == '' || $FILENAME == $START_LOG) {
 	throw new Exception('Invalid username', 100);
 }
 
@@ -26,7 +31,11 @@ if(!is_file($FILENAME)) {
 }
 
 $message = $_GET['message'];
-$dateStr = date("Y-m-d")."  ".date("H:i:s");
+$dateStr = date("Y-m-d")."T".date("H:i:s");
+$dateCreated = $_GET[$KEY_CREATED];
+if ($dateCreated == null) {
+	$dateCreated = $dateStr;
+}
 $title = $_GET['title'];
 $tags = $_GET['tags'];
 $id = $_GET[$KEY_ID];
@@ -50,18 +59,21 @@ case $ACTION_EDIT:
 	$pos = getNoteIndex($id, $array);
 	if ($pos > -1) {
 		$noteToEdit = $array[$pos];
-		$editedNote = createNewNote($id, $title, $message, $noteToEdit['date_created'], $dateStr, $tags, $array);
+		$editedNote = createNewNote($id, $title, $message, $noteToEdit[$KEY_CREATED], $dateStr, $tags, $array);
 		$array[$pos] = $editedNote;
 	}
 	break;
 case $ACTION_NEW:
 default:
 	if ($id == null) $id = uniqid();
-	$newNote = createNewNote($id, $title, $message, $dateStr, $dateStr, $tags, $array);
+	$newNote = createNewNote($id, $title, $message, $dateCreated, $dateCreated, $tags, $array);
 	array_push($array, $newNote);
 }
 
 $json['data'] = $array;
+$json['action'] = $action;
+$json['collection'] = $username;
+$json['size'] = count($array);
 # Convert JSON data from an array to a string
 $jsonString = json_encode($json, JSON_PRETTY_PRINT);
 
