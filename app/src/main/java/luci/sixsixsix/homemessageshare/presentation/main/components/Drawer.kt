@@ -21,12 +21,9 @@
  */
 package luci.sixsixsix.homemessageshare.presentation.main.components
 
-import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,18 +33,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AddCircle
-import androidx.compose.material.icons.outlined.Call
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Send
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.outlined.ArrowForward
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -61,45 +50,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import luci.sixsixsix.homemessageshare.R
 import luci.sixsixsix.homemessageshare.common.mockNotesCollection
 import luci.sixsixsix.homemessageshare.common.toHslColor
 import luci.sixsixsix.homemessageshare.domain.models.NotesCollection
 import luci.sixsixsix.homemessageshare.presentation.common.DonateButton
 import luci.sixsixsix.homemessageshare.presentation.common.DonateButtonPreview
-import java.time.LocalDateTime
-import java.util.UUID
-
-val drawerItems = listOf(
-    MainContentMenuItem.Home,
-    MainContentMenuItem.Library,
-    MainContentMenuItem.Offline,
-    MainContentMenuItem.Settings,
-    MainContentMenuItem.About,
-    MainContentMenuItem.Logout
-)
 
 @Composable
 fun MainDrawer(
-    user: NotesCollection,
+    currentNotesCollection: NotesCollection,
     versionInfo: String,
     hideDonationButtons: Boolean,
-    items: List<MainContentMenuItem> = drawerItems,
-    onItemClick: (MainContentMenuItem) -> Unit,
+    items: List<NotesCollection>,
+    onItemClick: (NotesCollection) -> Unit,
     modifier: Modifier = Modifier,
     donateButton: @Composable () -> Unit = { DonateButton(
         isTransparent = true,
@@ -110,7 +82,7 @@ fun MainDrawer(
         modifier = modifier,
         //modifier = Modifier.fillMaxWidth(0.8f)
     ) {
-        DrawerHeader(user)
+        DrawerHeader(currentNotesCollection)
         Divider()
         DrawerBody(
             modifier = Modifier.weight(1f),
@@ -134,7 +106,7 @@ fun MainDrawer(
 }
 
 @Composable
-fun DrawerHeader(user: NotesCollection) {
+fun DrawerHeader(notesCollection: NotesCollection) {
     // if dogmazic user show custom information
 
     Box(modifier = Modifier
@@ -155,23 +127,25 @@ fun DrawerHeader(user: NotesCollection) {
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-
-                UserHead(id = user.id, firstName = user.serverAddress, lastName = user.dateCreated)
-
+                UserHead(
+                    id = notesCollection.collectionName,
+                    firstName = notesCollection.serverAddress,
+                    lastName = notesCollection.dateCreated
+                )
                 Column(
                     modifier = Modifier
                         .weight(1f)
                         .padding(start = 20.dp)
                 ) {
                     Text(
-                        text = user.id,
+                        text = notesCollection.collectionName,
                         fontSize = 18.sp,
                         maxLines = 1,
                         lineHeight = 24.sp,
                         fontWeight = FontWeight.Normal
                     )
                     Text(
-                        text = user.serverAddress,
+                        text = notesCollection.serverAddress,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp,
                         maxLines = 1,
@@ -182,13 +156,13 @@ fun DrawerHeader(user: NotesCollection) {
             }
             Spacer(modifier = Modifier.height(11.dp))
             AnimatedVisibility(visible = showFullUserInfo) {
-                UserInfoSection(
+                CollectionInfoSection(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
                             showFullUserInfo = !showFullUserInfo
                         },
-                    user = user
+                    notesCollection = notesCollection
                 )
             }
         }
@@ -197,21 +171,22 @@ fun DrawerHeader(user: NotesCollection) {
 
 @Composable
 fun DrawerBody(
-    items: List<MainContentMenuItem>,
+    items: List<NotesCollection>,
     modifier: Modifier = Modifier,
     itemTextStyle: TextStyle = TextStyle(fontSize = 18.sp),
-    onItemClick: (MainContentMenuItem) -> Unit
+    onItemClick: (NotesCollection) -> Unit
 ) {
+    println("DRAWER aaaa items ${items.size}")
     LazyColumn(modifier) {
         items(items) { item ->
             NavigationDrawerItem(
                 label = {
-                    Text(text = item.title, style = itemTextStyle)
+                    Text(text = item.collectionName, style = itemTextStyle)
                 },
                 icon = {
                     Icon(
-                        imageVector = item.icon,
-                        contentDescription = item.contentDescription
+                        imageVector = Icons.Outlined.ArrowForward,
+                        contentDescription = "Collection ${item.collectionName}"
                     )
                 },
                 selected = false,
@@ -247,136 +222,16 @@ fun UserHead(
     }
 }
 
-@Composable
-fun UserInfoSection(
-    modifier: Modifier = Modifier,
-    user: NotesCollection
-) {
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        Column(
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.wrapContentHeight()
-        ) {
-            UserInfoTextWithTitle(title = R.string.settings_userInfo_email, subtitle = user.id)
-            UserInfoTextWithTitle(title = R.string.settings_userInfo_website, subtitle = user.serverAddress)
-            UserInfoTextWithTitle(title = R.string.settings_userInfo_city, subtitle = user.dateCreated)
-            UserInfoTextWithTitle(title = R.string.settings_userInfo_state, subtitle = user.dateModified)
-        }
-    }
-}
-
-@Composable
-private fun UserInfoTextWithTitle(@StringRes title: Int, subtitle: String?) {
-    subtitle?.let {
-        if (it.isNotBlank()) {
-            TextWithOverline(title = title, subtitle = it)
-        }
-    }
-}
-
 @Composable @Preview
 fun PreviewDrawer() {
     MainDrawer(
         //modifier = Modifier.weight(1f),
-        user = mockNotesCollection(),
+        currentNotesCollection = mockNotesCollection(),
         versionInfo = "0.666-beta (666)",
         hideDonationButtons = false,
+        onItemClick = {},
+        items = listOf(mockNotesCollection(), mockNotesCollection(), mockNotesCollection(), mockNotesCollection(), mockNotesCollection()),
         donateButton = {
             DonateButtonPreview()
-        },
-        onItemClick = { }
-    )
-}
-
-sealed class MainContentMenuItem(
-    val id: String, // identifier, because title is subject to translations
-    val title: String,
-    val contentDescription: String,
-    val icon: ImageVector
-) {
-    companion object {
-        /**
-         * TODO use reflection instead
-         * workaround because we cannot save MainContentMenuItem into rememberSaveable
-         */
-        fun toMainContentMenuItem(id: String) =
-            when (id) {
-                "home" -> Home
-                "settings" -> Settings
-                "library" -> Library
-                "logout" -> Logout
-                "about" -> About
-                "offline" -> Offline
-                else -> throw IllegalArgumentException("$id is not a valid id")
-            }
-
-    }
-
-    data object Home: MainContentMenuItem(id = "home", title = "Home", icon = Icons.Outlined.Home, contentDescription = "home")
-    data object Settings: MainContentMenuItem(id = "settings", title = "Settings", icon = Icons.Outlined.Settings, contentDescription = "Settings")
-    data object Library: MainContentMenuItem(id = "library", title = "Library", icon = Icons.Outlined.AddCircle, contentDescription = "Library")
-    data object Offline: MainContentMenuItem(id = "offline", title = "Offline Songs", icon = Icons.Outlined.Call, contentDescription = "Offline Songs")
-    data object About: MainContentMenuItem(id = "about", title = "About", icon = Icons.Outlined.Info, contentDescription = "About")
-    data object Logout: MainContentMenuItem(id = "logout", title = "Logout", icon = Icons.Outlined.Send, contentDescription = "Logout")
-}
-
-
-
-@Composable
-fun TextWithOverline(
-    modifier: Modifier = Modifier.fillMaxWidth(),
-    @StringRes title: Int,
-    subtitle: String,
-    subtitleTextSize: TextUnit = 16.sp,
-    trailingIcon: ImageVector? = null,
-    trailingIconContentDescription: String? = null,
-    enabled: Boolean = true,
-    onClick: () -> Unit = { }
-) {
-    val alpha = if (!enabled) { 0.5f } else { 1f }
-
-    Row(modifier = modifier
-        .clickable { onClick() }
-        .alpha(alpha)
-        .padding(
-            horizontal = dimensionResource(id = R.dimen.listItem_padding_horizontal),
-            vertical = dimensionResource(id = R.dimen.listItem_padding_vertical)
-        ),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column {
-            Text(
-                text = stringResource(id = title),
-                fontSize = 12.sp,
-                maxLines = 1,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            if (subtitle.isNotBlank()) {
-                Text(
-                    text = subtitle,
-                    fontSize = subtitleTextSize,
-                    fontWeight = FontWeight.Normal
-                )
-            }
-        }
-        trailingIcon?.let {
-            Icon(imageVector = it, contentDescription = trailingIconContentDescription)
-        }
-    }
-}
-
-@Composable
-@Preview
-fun TextWithOverlinePreview() {
-    TextWithOverline(
-        modifier = Modifier.background(Color.White),
-        title = R.string.app_name,
-        subtitle = "R.string.settings_enableDebugLogging_title"
-    )
+        })
 }

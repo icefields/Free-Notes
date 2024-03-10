@@ -1,6 +1,7 @@
 package luci.sixsixsix.homemessageshare.presentation
 
 import android.app.Application
+import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -11,8 +12,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import luci.sixsixsix.homemessageshare.common.Resource
 import luci.sixsixsix.homemessageshare.di.WeakContext
+import luci.sixsixsix.homemessageshare.domain.CollectionsRepository
 import luci.sixsixsix.homemessageshare.domain.SettingsRepository
+import luci.sixsixsix.homemessageshare.domain.models.NotesCollection
 import luci.sixsixsix.homemessageshare.domain.models.Settings
 import javax.inject.Inject
 
@@ -21,6 +25,7 @@ class SettingsViewModel @Inject constructor(
     application: Application,
     private val weakContext: WeakContext,
     private val settingsRepository: SettingsRepository,
+    private val collectionsRepository: CollectionsRepository,
     private val savedStateHandle: SavedStateHandle
 ) : AndroidViewModel(application) {
     var state by mutableStateOf(Settings())
@@ -44,20 +49,33 @@ class SettingsViewModel @Inject constructor(
 
     fun setServer(server: String) = viewModelScope.launch {
         settingsRepository.writeServerAddress(server)
-//        if (server != state.serverAddress) {
-//            //getMessages()
-//            state = state.copy(serverAddress = server)
-//        }
     }
 
     fun setUsername(username: String) = viewModelScope.launch {
+        println("setUsername $username aaaa")
         settingsRepository.writeUsername(username)
-//        if (username != state.serverAddress) {
-//            // getMessages()
-//            // TODO only after getting messages, if everything is ok update the username
-//            //  otherwise app will always crash on invalid username (ie username==log)
-//            state = state.copy(username = username)
-//        }
+        collectionsRepository.writeCollection(NotesCollection(
+            collectionName = username,
+            serverAddress = state.serverAddress,
+            dateCreated = "",
+            dateModified = "",
+            tags = listOf(),
+            appTheme = if (state.isMaterialYouEnabled) "MaterialYouDark" else "Dark",
+            colour = "ffff00"
+        )).collect { resource ->
+            when(resource) {
+                is Resource.Success ->
+                    resource.data?.let { collections ->
+                        //state = state.copy(messages = messages.reversed())
+                    }
+                is Resource.Error -> weakContext.get()?.let { context -> {
+                    Toast.makeText(context, "Something went wrong,please try again ${resource.message}", Toast.LENGTH_LONG).show()
+                    println("MainViewModel setUsername parseMessagesResponse aaaa ${resource.message}")
+                }
+                }
+                is Resource.Loading -> { }
+            }
+        }
     }
 }
 

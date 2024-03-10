@@ -3,6 +3,7 @@ package luci.sixsixsix.homemessageshare.domain
 import kotlinx.coroutines.flow.Flow
 import luci.sixsixsix.homemessageshare.common.Resource
 import luci.sixsixsix.homemessageshare.domain.models.Message
+import luci.sixsixsix.homemessageshare.domain.models.NotesCollection
 
 interface MessagesRepository {
     suspend fun getMessages(username: String): Flow<Resource<List<Message>>>

@@ -54,8 +54,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
+import luci.sixsixsix.homemessageshare.common.Constants
 import luci.sixsixsix.homemessageshare.common.mockNotesCollection
 import luci.sixsixsix.homemessageshare.domain.models.Message
+import luci.sixsixsix.homemessageshare.domain.models.NotesCollection
 import luci.sixsixsix.homemessageshare.presentation.SettingsViewModel
 import luci.sixsixsix.homemessageshare.presentation.common.NewServerDialog
 import luci.sixsixsix.homemessageshare.presentation.main.components.MainDrawer
@@ -72,13 +74,15 @@ fun MainScreen(
         currentServer = state.serverAddress,
         currentUsername = state.username,
         isMaterialYouOn = state.isMaterialYouEnabled,
+        items = mainViewModel.collectionsState.collections,
         onSubmitMessage = mainViewModel::submitMessage,
         onSyncNotes = mainViewModel::syncNotes,
         onRemoveMessage = mainViewModel::removeMessage,
         onEditMessage = mainViewModel::editMessage,
         onNewServer = settingsViewModel::setServer,
         onNewUsername = settingsViewModel::setUsername,
-        onToggleMaterialYou = settingsViewModel::toggleMaterialYou
+        onToggleMaterialYou = settingsViewModel::toggleMaterialYou,
+        onCollectionSelected = mainViewModel::changeCollection
     ) { }
 }
 
@@ -88,6 +92,7 @@ fun MainScreenContent(
     messages: List<Message>,
     currentServer: String,
     currentUsername: String,
+    items: List<NotesCollection>,
     isMaterialYouOn: Boolean,
     onSubmitMessage: (message: String, title: String, tags: List<String>) -> Unit,
     onSyncNotes: () -> Unit,
@@ -96,7 +101,8 @@ fun MainScreenContent(
     onNewServer: (server: String) -> Unit,
     onToggleMaterialYou: (enable: Boolean) -> Unit,
     onNewUsername: (username: String) -> Unit,
-    onNavigationIconClick: (username: String) -> Unit
+    onCollectionSelected: (notesCollection: NotesCollection) -> Unit,
+    onNavigationIconClick: (username: String) -> Unit // doing nothing for now
 ) {
     var title by rememberSaveable { mutableStateOf("") }
     var message by rememberSaveable { mutableStateOf("") }
@@ -106,6 +112,7 @@ fun MainScreenContent(
     var editUsernameOpen by remember { mutableStateOf(false) }
     var editModeEnabled by remember { mutableStateOf(false) }
     val drawerState: DrawerState = rememberDrawerState(DrawerValue.Closed)
+    val isOfflineCollection = currentUsername == Constants.OFFLINE_USERNAME
 
     if (createPlaylistDialogOpen) {
         NewServerDialog(
@@ -137,13 +144,15 @@ fun MainScreenContent(
         //scrimColor = MaterialTheme.colorScheme.scrim,
         drawerContent = {
             MainDrawer(
-                user = mockNotesCollection(),
+                currentNotesCollection = mockNotesCollection(),
+                items = items,
                 versionInfo = "settingsViewModel.state.appVersionInfoStr",
                 hideDonationButtons = false,
                 onItemClick = {
                     scope.launch {
                         drawerState.close()
                     }
+                    onCollectionSelected(it)
                 }
             )
         }
@@ -217,6 +226,7 @@ fun MainScreenContent(
                         }
                     },
                     navigationIcon = {
+                        if (!isOfflineCollection) {
                             IconButton(onClick = {
                                 onNavigationIconClick(currentUsername)
                                 scope.launch {
@@ -225,12 +235,14 @@ fun MainScreenContent(
                                     }
                                 }
                             }) {
+
                                 Icon(
                                     imageVector = Icons.Default.Menu,
                                     contentDescription = "Menu"
                                 )
-                            }
 
+                            }
+                        }
                     }
                 )
             }

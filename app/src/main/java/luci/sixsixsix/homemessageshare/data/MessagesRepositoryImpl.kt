@@ -42,7 +42,6 @@ class MessagesRepositoryImpl @Inject constructor(
             emit(Resource.Loading(false))
         }.catch { e -> emit(Resource.Error(exception = e)) }
 
-
     override suspend fun submitMessage(
         username: String,
         note: String,
