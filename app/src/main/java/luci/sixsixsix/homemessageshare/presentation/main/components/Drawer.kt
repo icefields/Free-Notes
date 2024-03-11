@@ -36,9 +36,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.ArrowForward
+import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
@@ -59,6 +62,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import luci.sixsixsix.homemessageshare.common.colour
 import luci.sixsixsix.homemessageshare.common.mockNotesCollection
 import luci.sixsixsix.homemessageshare.common.toHslColor
 import luci.sixsixsix.homemessageshare.domain.models.NotesCollection
@@ -72,6 +76,7 @@ fun MainDrawer(
     hideDonationButtons: Boolean,
     items: List<NotesCollection>,
     onItemClick: (NotesCollection) -> Unit,
+    onDeleteCollection: (NotesCollection) -> Unit,
     modifier: Modifier = Modifier,
     donateButton: @Composable () -> Unit = { DonateButton(
         isTransparent = true,
@@ -87,7 +92,8 @@ fun MainDrawer(
         DrawerBody(
             modifier = Modifier.weight(1f),
             items = items,
-            onItemClick = onItemClick
+            onItemClick = onItemClick,
+            onDeleteCollection = onDeleteCollection
         )
         if (!hideDonationButtons) {
             donateButton()
@@ -174,6 +180,7 @@ fun DrawerBody(
     items: List<NotesCollection>,
     modifier: Modifier = Modifier,
     itemTextStyle: TextStyle = TextStyle(fontSize = 18.sp),
+    onDeleteCollection: (NotesCollection) -> Unit,
     onItemClick: (NotesCollection) -> Unit
 ) {
     println("DRAWER aaaa items ${items.size}")
@@ -185,9 +192,19 @@ fun DrawerBody(
                 },
                 icon = {
                     Icon(
-                        imageVector = Icons.Outlined.ArrowForward,
-                        contentDescription = "Collection ${item.collectionName}"
+                        imageVector = Icons.Filled.Star,
+                        contentDescription = "Collection ${item.collectionName}",
+                        tint = item.colour.colour
                     )
+                },
+                badge = {
+                    IconButton(
+                        onClick = {
+                            onDeleteCollection(item)
+                        }
+                    ) {
+                        Icon(imageVector = Icons.Outlined.Clear, contentDescription = "delete collection")
+                    }
                 },
                 selected = false,
                 onClick = {
@@ -230,6 +247,7 @@ fun PreviewDrawer() {
         versionInfo = "0.666-beta (666)",
         hideDonationButtons = false,
         onItemClick = {},
+        onDeleteCollection = {},
         items = listOf(mockNotesCollection(), mockNotesCollection(), mockNotesCollection(), mockNotesCollection(), mockNotesCollection()),
         donateButton = {
             DonateButtonPreview()

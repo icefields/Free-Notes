@@ -19,22 +19,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package luci.sixsixsix.homemessageshare.domain.models
+package luci.sixsixsix.homemessageshare.presentation.main
 
 import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
+import luci.sixsixsix.homemessageshare.domain.models.Message
+import luci.sixsixsix.homemessageshare.domain.models.NotesCollection
 
 @Parcelize
-data class Message(
-    val id: String,
-    val dateCreated: String,
-    val dateModified: String,
-    val message: String,
-    val title: String,
-    val tags: List<String>,
-    val custom: Custom? = null
+data class MainState(
+    //val username: String = Constants.COLLECTION_LOCALHOST_NAME,
+    val notesCollection: NotesCollection = NotesCollection.defaultLocalhost(),
+    val messages: List<Message> = listOf(),
+    val loading: Boolean = false,
+    val collections: List<NotesCollection> = listOf()
 ): Parcelable
-
-@Parcelize
-class Custom: Parcelable

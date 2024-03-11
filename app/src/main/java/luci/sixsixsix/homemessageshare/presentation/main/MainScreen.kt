@@ -1,3 +1,24 @@
+/**
+ * Copyright (C) 2024  Antonio Tari
+ *
+ * This file is a part of Libre Notes
+ * Android self-hosting, note-taking, client + server application
+ * @author Antonio Tari
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 package luci.sixsixsix.homemessageshare.presentation.main
 
 import androidx.compose.animation.AnimatedVisibility
@@ -52,37 +73,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
-import luci.sixsixsix.homemessageshare.common.Constants
 import luci.sixsixsix.homemessageshare.common.mockNotesCollection
 import luci.sixsixsix.homemessageshare.domain.models.Message
 import luci.sixsixsix.homemessageshare.domain.models.NotesCollection
-import luci.sixsixsix.homemessageshare.presentation.SettingsViewModel
-import luci.sixsixsix.homemessageshare.presentation.common.NewServerDialog
+import luci.sixsixsix.homemessageshare.domain.models.isMaterialYou
+import luci.sixsixsix.homemessageshare.presentation.common.NewNotesCollectionDialog
 import luci.sixsixsix.homemessageshare.presentation.main.components.MainDrawer
 import luci.sixsixsix.homemessageshare.presentation.main.components.MessageItem
 
 @Composable
 fun MainScreen(
-    settingsViewModel: SettingsViewModel,
-    mainViewModel: MainViewModel = hiltViewModel()
+    mainViewModel: MainViewModel
 ) {
-    val state = settingsViewModel.state
+    val state = mainViewModel.state
     MainScreenContent(
-        messages = mainViewModel.state.messages,
-        currentServer = state.serverAddress,
-        currentUsername = state.username,
-        isMaterialYouOn = state.isMaterialYouEnabled,
-        items = mainViewModel.collectionsState.collections,
+        messages = state.messages,
+        items = state.collections,
+        currentCollection = state.notesCollection,
         onSubmitMessage = mainViewModel::submitMessage,
         onSyncNotes = mainViewModel::syncNotes,
         onRemoveMessage = mainViewModel::removeMessage,
         onEditMessage = mainViewModel::editMessage,
-        onNewServer = settingsViewModel::setServer,
-        onNewUsername = settingsViewModel::setUsername,
-        onToggleMaterialYou = settingsViewModel::toggleMaterialYou,
-        onCollectionSelected = mainViewModel::changeCollection
+        onNewCollection = mainViewModel::onNewConfiguration,
+        onToggleMaterialYou = mainViewModel::toggleMaterialYou,
+        onDeleteCollection = mainViewModel::deleteCollection,
+        onCollectionSelected = mainViewModel::switchDisplayedCollection
     ) { }
 }
 
@@ -90,18 +106,16 @@ fun MainScreen(
 @Composable
 fun MainScreenContent(
     messages: List<Message>,
-    currentServer: String,
-    currentUsername: String,
+    currentCollection: NotesCollection,
     items: List<NotesCollection>,
-    isMaterialYouOn: Boolean,
     onSubmitMessage: (message: String, title: String, tags: List<String>) -> Unit,
     onSyncNotes: () -> Unit,
     onRemoveMessage: (message: Message) -> Unit,
     onEditMessage: (message: Message) -> Unit,
-    onNewServer: (server: String) -> Unit,
     onToggleMaterialYou: (enable: Boolean) -> Unit,
-    onNewUsername: (username: String) -> Unit,
+    onNewCollection:  (serverAddress: String, collectionName: String) -> Unit,
     onCollectionSelected: (notesCollection: NotesCollection) -> Unit,
+    onDeleteCollection: (NotesCollection) -> Unit,
     onNavigationIconClick: (username: String) -> Unit // doing nothing for now
 ) {
     var title by rememberSaveable { mutableStateOf("") }
@@ -109,16 +123,19 @@ fun MainScreenContent(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     val scope = rememberCoroutineScope()
     var createPlaylistDialogOpen by remember { mutableStateOf(false) }
-    var editUsernameOpen by remember { mutableStateOf(false) }
     var editModeEnabled by remember { mutableStateOf(false) }
     val drawerState: DrawerState = rememberDrawerState(DrawerValue.Closed)
-    val isOfflineCollection = currentUsername == Constants.OFFLINE_USERNAME
+    val isOfflineCollection = false
+    val currentServer = currentCollection.serverAddress
+    val currentCollectionName = currentCollection.collectionName
+    val isMaterialYouOn = currentCollection.isMaterialYou()
 
     if (createPlaylistDialogOpen) {
-        NewServerDialog(
+        NewNotesCollectionDialog(
             currentServer = currentServer,
-            onConfirm = {
-                onNewServer(it)
+            currentCollectionName = currentCollectionName,
+            onConfirm = { newServer, newCollectionName ->
+                onNewCollection(newServer, newCollectionName)
                 createPlaylistDialogOpen = false
             },
             onCancel = {
@@ -127,27 +144,15 @@ fun MainScreenContent(
         )
     }
 
-    if (editUsernameOpen) {
-        NewServerDialog(
-            currentServer = currentUsername,
-            onConfirm = {
-                onNewUsername(it)
-                editUsernameOpen = false
-            },
-            onCancel = {
-                editUsernameOpen = false
-            }
-        )
-    }
     ModalNavigationDrawer(
         drawerState = drawerState,
-        //scrimColor = MaterialTheme.colorScheme.scrim,
         drawerContent = {
             MainDrawer(
-                currentNotesCollection = mockNotesCollection(),
+                currentNotesCollection = currentCollection,
                 items = items,
                 versionInfo = "settingsViewModel.state.appVersionInfoStr",
                 hideDonationButtons = false,
+                onDeleteCollection = onDeleteCollection,
                 onItemClick = {
                     scope.launch {
                         drawerState.close()
@@ -173,11 +178,6 @@ fun MainScreenContent(
             },
             topBar = {
                 TopAppBar(
-                    /*modifier = Modifier.background(Color.Transparent),
-                colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = Color.Transparent,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surface,
-                ),*/
                     title = {
                         Text(
                             modifier = Modifier
@@ -186,7 +186,7 @@ fun MainScreenContent(
                                 .clickable {
                                     onToggleMaterialYou(!isMaterialYouOn)
                                 },
-                            text = "NOTES",
+                            text = currentCollection.collectionName,
                             maxLines = 1,
                             fontWeight = FontWeight.Normal,
                             style = TextStyle(
@@ -209,14 +209,6 @@ fun MainScreenContent(
                             )
                         }
                         IconButton(onClick = {
-                            editUsernameOpen = true
-                        }) {
-                            Icon(
-                                imageVector = Icons.Outlined.AccountCircle,
-                                contentDescription = "show hide album info"
-                            )
-                        }
-                        IconButton(onClick = {
                             createPlaylistDialogOpen = true
                         }) {
                             Icon(
@@ -228,14 +220,13 @@ fun MainScreenContent(
                     navigationIcon = {
                         if (!isOfflineCollection) {
                             IconButton(onClick = {
-                                onNavigationIconClick(currentUsername)
+                                onNavigationIconClick(currentCollectionName)
                                 scope.launch {
                                     drawerState.apply {
                                         if (isClosed) open() else close()
                                     }
                                 }
                             }) {
-
                                 Icon(
                                     imageVector = Icons.Default.Menu,
                                     contentDescription = "Menu"

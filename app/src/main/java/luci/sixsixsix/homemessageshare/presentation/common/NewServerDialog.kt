@@ -1,8 +1,8 @@
 /**
  * Copyright (C) 2024  Antonio Tari
  *
- * This file is a part of Power Ampache 2
- * Ampache Android client application
+ * This file is a part of Libre Notes
+ * Android self-hosting, note-taking, client + server application
  * @author Antonio Tari
  *
  * This program is free software: you can redistribute it and/or modify
@@ -54,12 +54,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 @Composable
-fun NewServerDialog(
+fun NewNotesCollectionDialog(
     currentServer: String,
-    onConfirm: (serverAddress: String) -> Unit,
+    currentCollectionName: String,
+    onConfirm: (serverAddress: String, collectionName: String) -> Unit,
     onCancel: () -> Unit
 ) {
-    var playlistName by remember { mutableStateOf(currentServer) }
+    var serverAddress by remember { mutableStateOf(currentServer) }
+    var collectionName by remember { mutableStateOf(currentCollectionName) }
 
     Dialog(
         onDismissRequest = onCancel,
@@ -80,15 +82,37 @@ fun NewServerDialog(
                 verticalArrangement = Arrangement.Center,
             ) {
                 OutlinedTextField(
-                    value = playlistName,
+                    value = collectionName,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 10.dp),
                     onValueChange = {
-                        playlistName = it
+                        collectionName = it
                     },
                     singleLine = true,
-                    placeholder = {
+                    label = {
+                        Text(
+                            text = "Collection Name",
+                            modifier = Modifier
+                                //    .wrapContentSize(Alignment.Center)
+                                .padding(vertical = 0.dp),
+                            //textAlign = TextAlign.Center,
+                            //fontWeight = FontWeight.Bold,
+                            //fontSize = 15.sp
+                        )
+                    }
+                )
+
+                OutlinedTextField(
+                    value = serverAddress,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp),
+                    onValueChange = {
+                        serverAddress = it
+                    },
+                    singleLine = true,
+                    label = {
                         Text(
                             text = "Server address",
                             modifier = Modifier
@@ -122,7 +146,7 @@ fun NewServerDialog(
                         contentColor = MaterialTheme.colorScheme.onPrimary,
                         borderEnabled = false,
                         onClick = {
-                            onConfirm(playlistName) }
+                            onConfirm(serverAddress, collectionName) }
                     )
                 }
             }
@@ -179,11 +203,10 @@ fun RoundedCornerButton(
 
 @Composable @Preview
 fun PreviewNewPlaylistDialog() {
-    NewServerDialog(
+    NewNotesCollectionDialog(
         currentServer = "currentServer",
-        onCancel = {},
-        onConfirm = { name ->
-
-        }
+        currentCollectionName = "Collection Name",
+        onCancel = { },
+        onConfirm = { _, _ -> }
     )
 }

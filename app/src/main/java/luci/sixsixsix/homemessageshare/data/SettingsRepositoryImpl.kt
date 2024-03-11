@@ -1,3 +1,24 @@
+/**
+ * Copyright (C) 2024  Antonio Tari
+ *
+ * This file is a part of Libre Notes
+ * Android self-hosting, note-taking, client + server application
+ * @author Antonio Tari
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 package luci.sixsixsix.homemessageshare.data
 
 import android.annotation.SuppressLint
@@ -12,47 +33,50 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import luci.sixsixsix.homemessageshare.common.Constants.DEBUG_SERVER
-import luci.sixsixsix.homemessageshare.common.Constants.OFFLINE_USERNAME
+import luci.sixsixsix.homemessageshare.data.local.NotesDatabase
+import luci.sixsixsix.homemessageshare.data.local.entities.toNotesCollection
 import luci.sixsixsix.homemessageshare.di.WeakContext
 import luci.sixsixsix.homemessageshare.domain.SettingsRepository
 import luci.sixsixsix.homemessageshare.domain.Success
-import luci.sixsixsix.homemessageshare.domain.models.Settings
+import luci.sixsixsix.homemessageshare.domain.models.NotesCollection
+import luci.sixsixsix.homemessageshare.domain.models.collectionId
 import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val KEY_STORAGE = "{prefix}KEY_WORKER_PREFERENCE"
-private const val KEY_WORKER_PREFERENCE_ID = "{prefix}downloadWorkerId"
+private const val KEY_COLLECTION_ID_PREFERENCE_ID = "{prefix}downloadWorkerId"
 private const val KEY_USERNAME_PREFERENCE_ID = "{prefix}username.id.storage"
 private const val KEY_MATERIAL_YOU_PREFERENCE_ID = "{prefix}materiayouonoff.id.storage"
 
 @OptIn(DelicateCoroutinesApi::class)
 @Singleton
 class SettingsRepositoryImpl @Inject constructor(
-    private val weakContext: WeakContext
+    private val weakContext: WeakContext,
+    db: NotesDatabase
 ): SettingsRepository {
-    private val _settingsLiveData: MutableLiveData<Settings?> = MutableLiveData(null)
-    override val settingsLiveData: LiveData<Settings?> = _settingsLiveData
+    private val dao = db.dao
+
+    private val _settingsLiveData: MutableLiveData<NotesCollection?> = MutableLiveData(null)
+    override val settingsLiveData: LiveData<NotesCollection?> = _settingsLiveData
+
     override val settingsFlow = settingsLiveData.distinctUntilChanged().asFlow().filterNotNull()
 
     private fun getSharedPreferences() =
         weakContext.get()?.getSharedPreferences(KEY_STORAGE, Context.MODE_PRIVATE)
 
     init {
-        initialize {
-            println("SettingsRepositoryImpl - initialize callback aaaa ${it.username}")
-            _settingsLiveData.value = it
-        }
+        initialize { _settingsLiveData.value = it }
     }
 
-    private fun initialize(callback: (Settings) -> Unit) {
+    private fun initialize(callback: (NotesCollection) -> Unit) {
         GlobalScope.launch {
+            dao.getCollection(getCurrentNotesCollectionId(true))
             withContext(Dispatchers.Main) {
-                callback( Settings(
-                    isMaterialYouEnabled = isMaterialYouEnabled(),
-                    username = getUsername() ?: OFFLINE_USERNAME,
-                    serverAddress = getServerAddress(true)
-                ))
+                try {
+                    callback(getCurrentNotesCollection(true))
+                }catch (e: Exception) {
+                    println("initialize settings repo aaaa ${e.stackTraceToString()}")
+                }
             }
         }
     }
@@ -73,33 +97,21 @@ class SettingsRepositoryImpl @Inject constructor(
             }
         } ?: false
 
-    override suspend fun getServerAddress(returnDefaultIfNull: Boolean): String =
-        getSharedPreferences()?.getString(KEY_WORKER_PREFERENCE_ID, null) ?: run {
-            if (returnDefaultIfNull) {
-                DEBUG_SERVER
-            } else ""
+
+    override suspend fun getCurrentNotesCollection(returnDefaultIfNull: Boolean) =
+        dao.getCollection(getCurrentNotesCollectionId(returnDefaultIfNull)).toNotesCollection()
+
+    override suspend fun writeCurrentNotesCollectionId(
+        serverAddress: String,
+        collectionName: String
+    ) = writeString(KEY_COLLECTION_ID_PREFERENCE_ID, collectionId(serverAddress, collectionName)).also {
+            _settingsLiveData.value = getCurrentNotesCollection(true)
         }
 
-    @SuppressLint("ApplySharedPref")
-    override suspend fun writeServerAddress(
-        serverAddress: String
-    ) = writeString(KEY_WORKER_PREFERENCE_ID, serverAddress).also {
-        _settingsLiveData.value = settingsLiveData.value?.copy(serverAddress = serverAddress)
-    }
-
-    override suspend fun getUsername() =
-        getSharedPreferences()?.getString(KEY_USERNAME_PREFERENCE_ID, null)
-
-    override suspend fun writeUsername(username: String): Success =
-        writeString(KEY_USERNAME_PREFERENCE_ID, username).also {
-            _settingsLiveData.value = settingsLiveData.value?.copy(username = username)
-        }
-
-    override suspend fun isMaterialYouEnabled() =
-        getSharedPreferences()?.getString(KEY_MATERIAL_YOU_PREFERENCE_ID, "true") == "true"
-
-    override suspend fun toggleMaterialYou(enable: Boolean) = enable.also {
-        writeString(KEY_MATERIAL_YOU_PREFERENCE_ID, it.toString())
-        _settingsLiveData.value = settingsLiveData.value?.copy(isMaterialYouEnabled = enable)
+    private fun getCurrentNotesCollectionId(returnDefaultIfNull: Boolean): String =
+        getSharedPreferences()?.getString(KEY_COLLECTION_ID_PREFERENCE_ID, null) ?: run {
+        if (returnDefaultIfNull) {
+            NotesCollection.localhostCollectionId
+        } else ""
     }
 }
