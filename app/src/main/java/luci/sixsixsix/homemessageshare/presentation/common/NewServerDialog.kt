@@ -154,53 +154,6 @@ fun NewNotesCollectionDialog(
     }
 }
 
-@Composable
-fun RoundedCornerButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    containerColor: Color = MaterialTheme.colorScheme.surface,
-    contentColor: Color = MaterialTheme.colorScheme.onSurface,
-    borderEnabled: Boolean = true,
-    borderColor: Color = MaterialTheme.colorScheme.onSurface
-) {
-    TextButton(
-        modifier = modifier
-            .wrapContentSize(Alignment.Center),
-        shape = RoundedCornerShape(25.dp),
-        border = if (borderEnabled) BorderStroke(
-            width = 0.5.dp,
-            color = borderColor
-        ) else null,
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = containerColor,
-            contentColor = contentColor
-        )
-    ) {
-        Box(
-            modifier = Modifier
-                .wrapContentSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text,
-                modifier = Modifier
-                    .wrapContentSize(Alignment.Center)
-                    .padding(
-                        horizontal = 16.dp,
-                        vertical = 4.dp
-                    ),
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 15.sp
-            )
-        }
-
-    }
-}
-
-
 @Composable @Preview
 fun PreviewNewPlaylistDialog() {
     NewNotesCollectionDialog(

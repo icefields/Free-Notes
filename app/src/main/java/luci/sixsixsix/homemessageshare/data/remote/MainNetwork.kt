@@ -1,40 +1,47 @@
 package luci.sixsixsix.homemessageshare.data.remote
 
 import luci.sixsixsix.homemessageshare.data.remote.dto.MessagesDto
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Query
 
 /**
  * Main network interface
  */
 interface MainNetwork {
-    @GET("api.php?action=new")
+    @FormUrlEncoded
+    @POST("api.php?action=new")
     suspend fun writeMessage(
-        @Query("id") id: String? = null,
-        @Query("username") username: String,
-        @Query("title") title: String,
-        @Query("date_created") dateCreated: String,
-        @Query("message") message: String,
-        @Query("tags") tags: List<String> = listOf()
+        @Field("id") id: String? = null,
+        @Field("username") username: String,
+        @Field("title") title: String,
+        @Field("date_created") dateCreated: String,
+        @Field("message") message: String,
+        @Field("tags") tags: List<String> = listOf()
     ): MessagesDto
 
-    @GET("api.php?action=edit")
+    @FormUrlEncoded
+    @POST("api.php?action=edit")
     suspend fun editMessage(
-        @Query("id") id: String,
-        @Query("username") username: String,
-        @Query("title") title: String,
-        @Query("message") message: String,
-        @Query("tags") tags: List<String> = listOf()
+        @Field("id") id: String,
+        @Field("username") username: String,
+        @Field("title") title: String,
+        @Field("message") message: String,
+        @Field("tags") tags: List<String> = listOf()
     ): MessagesDto
 
-    @GET("api.php?action=delete")
+    @FormUrlEncoded
+    @POST("api.php?action=delete")
     suspend fun deleteMessage(
-        @Query("username") username: String,
-        @Query("id") id: String
+        @Field("username") username: String,
+        @Field("id") id: String
     ): MessagesDto
 
-    @GET("api.php?action=view")
+    @FormUrlEncoded
+    @POST("api.php?action=view")
     suspend fun getMessages(
-        @Query("username") username: String,
+        @Field("username") username: String,
     ): MessagesDto
 }

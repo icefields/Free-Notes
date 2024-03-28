@@ -74,11 +74,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
+import luci.sixsixsix.homemessageshare.R
 import luci.sixsixsix.homemessageshare.common.mockNotesCollection
 import luci.sixsixsix.homemessageshare.domain.models.Message
 import luci.sixsixsix.homemessageshare.domain.models.NotesCollection
 import luci.sixsixsix.homemessageshare.domain.models.isMaterialYou
 import luci.sixsixsix.homemessageshare.presentation.common.NewNotesCollectionDialog
+import luci.sixsixsix.homemessageshare.presentation.dialog.EraseConfirmDialog
 import luci.sixsixsix.homemessageshare.presentation.main.components.MainDrawer
 import luci.sixsixsix.homemessageshare.presentation.main.components.MessageItem
 
@@ -123,6 +125,7 @@ fun MainScreenContent(
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     val scope = rememberCoroutineScope()
     var createPlaylistDialogOpen by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf<Message?>(null) }
     var editModeEnabled by remember { mutableStateOf(false) }
     val drawerState: DrawerState = rememberDrawerState(DrawerValue.Closed)
     val isOfflineCollection = false
@@ -142,6 +145,24 @@ fun MainScreenContent(
                 createPlaylistDialogOpen = false
             }
         )
+    }
+
+    if (showDeleteDialog != null) {
+        showDeleteDialog?.let { mess: Message ->
+            EraseConfirmDialog(
+                onDismissRequest = {
+                    showDeleteDialog = null
+                },
+                onConfirmation = {
+                    onRemoveMessage(it)
+                    showDeleteDialog = null
+                },
+                data = mess,
+                dialogTitle = R.string.remove_title,
+                dialogText = R.string.remove_subtitle
+            )
+        }
+
     }
 
     ModalNavigationDrawer(
@@ -289,7 +310,9 @@ fun MainScreenContent(
                             MessageItem(
                                 message = mess,
                                 enableSwipeToRemove = true,
-                                onRemove = onRemoveMessage,
+                                onRemove = { mess ->
+                                    showDeleteDialog = mess
+                                },
                                 onEdit = { mess ->
                                     onEditMessage(mess.copy(message = message, title = title))
                                 }

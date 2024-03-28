@@ -1,6 +1,7 @@
 <?php
 $START_LOG = 'log.json'; 
 $KEY_ID = 'id';
+$KEY_USERNAME = 'username';
 $KEY_CREATED = "date_created";
 $ACTION_DELETE = 'delete';
 $ACTION_EDIT = 'edit';
@@ -8,7 +9,8 @@ $ACTION_NEW = 'new';
 $ACTION_VIEW = 'view';
 $FILE_PREFIX = "notes-";
 $action = $_GET['action'];
-$username = $_GET['username'];
+$username = $_POST[$KEY_USERNAME];
+if ($username == null) $username = $_GET[$KEY_USERNAME];
 $FILENAME = $FILE_PREFIX.$username.'.json';
 $READONLY_USERNAME = "freenotes-debug-user.random*maybe.unique.id.to.fetch-default-notes";
 	
@@ -30,15 +32,15 @@ if(!is_file($FILENAME)) {
 	file_put_contents($FILENAME, $defaultJson);
 }
 
-$message = $_GET['message'];
+$message = $_POST['message'];
 $dateStr = date("Y-m-d")."T".date("H:i:s");
-$dateCreated = $_GET[$KEY_CREATED];
+$dateCreated = $_POST[$KEY_CREATED];
 if ($dateCreated == null) {
 	$dateCreated = $dateStr;
 }
-$title = $_GET['title'];
-$tags = $_GET['tags'];
-$id = $_GET[$KEY_ID];
+$title = $_POST['title'];
+$tags = $_POST['tags'];
+$id = $_POST[$KEY_ID];
 
 #read the current archive of notes
 $json_data = file_get_contents($FILENAME);

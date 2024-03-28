@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">Libre Notes</string>
+    <string name="remove_subtitle">Remove this note from collection</string>
+    <string name="remove_title">Remove?</string>
 
     <string name="settings_serverInfo_title">Server</string>
     <string name="settings_serverInfo_version">Version</string>
