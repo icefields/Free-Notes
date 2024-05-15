@@ -98,8 +98,19 @@ class SettingsRepositoryImpl @Inject constructor(
         } ?: false
 
 
-    override suspend fun getCurrentNotesCollection(returnDefaultIfNull: Boolean) =
-        dao.getCollection(getCurrentNotesCollectionId(returnDefaultIfNull)).toNotesCollection()
+    override suspend fun getCurrentNotesCollection(returnDefaultIfNull: Boolean): NotesCollection {
+        val noteCollDb = dao.getCollection(getCurrentNotesCollectionId(returnDefaultIfNull))
+        println("Collection ID: ${getCurrentNotesCollectionId(returnDefaultIfNull)}")
+
+        println(noteCollDb.collectionName)
+        println(noteCollDb.id)
+        println(noteCollDb.dateCreated)
+        println(noteCollDb.dateModified)
+        println(noteCollDb.collectionName)
+        println(noteCollDb.serverAddress)
+        println(noteCollDb.appTheme)
+        return noteCollDb.toNotesCollection()
+    }
 
     override suspend fun writeCurrentNotesCollectionId(
         serverAddress: String,
